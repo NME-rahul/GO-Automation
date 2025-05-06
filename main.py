@@ -10,8 +10,8 @@ import time
 
 seconds = 5
 
-EMAIL = "contact.goclasses@gmail.com"
-PASS = "QX2SzvpMd"
+EMAIL = ""
+PASS = ""
 
 def process_link(link):
     q_id = link.split('/')[3]
