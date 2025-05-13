@@ -1,4 +1,4 @@
-
+# Source from where to copy the url
 source = [
 "https://gateoverflow.in/446455/go-classes-cs-test-series-2025-mock-gate-test-9-question-26",
 "https://gateoverflow.in/446445/go-classes-cs-test-series-2025-mock-gate-test-9-question-32",
@@ -22,7 +22,7 @@ source = [
 "https://gateoverflow.in/396732/go-classes-cs-test-series-2025-mock-gate-test-3-question-19",
 ]
 
-
+# target from where to paste the conent
 target = [
 
 "https://gateoverflow.in/468267/go-classes-test-series-2025-nielit-mock-test-1-question-101",
