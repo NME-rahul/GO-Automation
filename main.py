@@ -14,8 +14,8 @@ import Url
 import time
 
 DELAY = 3
-EMAIL = "contact.goclasses@gmail.com"
-PASS = "QX2SzvpMd"
+EMAIL = ""
+PASS = ""
 TRY = 1
 
 
