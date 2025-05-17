@@ -13,48 +13,38 @@ from bs4 import BeautifulSoup
 import Url
 import time
 
-DELAY = 3
+DELAY = 5
 EMAIL = ""
 PASS = ""
-TRY = 1
-
 
 def process_link(link):
     q_id = link.split('/')[3]
     link = link + f"?state=edit-{q_id}"
     return link
     
-def copy_Q(main_driver, link):
+def copy_Q(main_driver, link, ATTEMP):
+    question = -1 #No Valid Question copied
     try:
         question = main_driver.find_element(By.XPATH, '//*[@id="q_content_ckeditor_data"]')
         question = question.get_attribute("value")
     except Exception as e:
         print("Error: Not able to Copy Question")
-        if TRY :
+        if ATTEMP :
             print("Attempting again.")
-            question = -1 #No Valid Question copied
-            copy_Q(main_driver, link)
-            TRY = TRY - 1
+            copy_Q(main_driver, link, ATTEMP-1)
     return question
     
-def copy_A(main_driver, link):  
+def copy_A(main_driver, link, ATTEMP):
+    answer = -1 #No valid ansewer copied
     try:
         selected_div = main_driver.find_element(By.CSS_SELECTOR, "div.qa-a-list-item.qa-a-list-item-selected")
-        inner_html = selected_div.get_attribute("innerHTML")
-        soup = BeautifulSoup(inner_html, "html.parser")
-        first_p = soup.find("p")
-        if first_p:
-            answer = str(first_p) #Valid ansewer copied
-        else:
-            answer = -1 #No valid ansewer copied
-            print("Error: Did not get any Answer. TRY: ", TRY)
+        content_div = selected_div.find_element(By.CSS_SELECTOR, "div.qa-a-item-content")
+        answer = content_div.text
     except Exception as e:
         print("Error: Not able to Copy Answer")
-        if TRY:
+        if ATTEMP:
             print("Attempting again.")
-            answer = -1 #No valid ansewer copied
-            copy_Q(main_driver, link)
-            TRY = TRY - 1
+            copy_Q(main_driver, link, ATTEMP-1)
     return answer
     
 def paste_Q(main_driver, question):
@@ -87,12 +77,11 @@ def paste_Q(main_driver, question):
         time.sleep(DELAY)
     except Exception as e:
         print("Error: Not able to Paste Question. TRY: ", TRY)
-        if TRY:
+        if ATTEMP:
             print("Attempting again.")
-            paste_Q(main_driver, question)
-            TRY = TRY - 1
+            paste_Q(main_driver, question, ATTEMP-1)
         
-def paste_A(main_driver, answer):
+def paste_A(main_driver, answer, ATTEMP):
     try:
         submit_ans = main_driver.find_element(By.XPATH, '//*[@id="q_doanswer"]')
         submit_ans.click()
@@ -118,38 +107,37 @@ def paste_A(main_driver, answer):
                                         textarea.value = content;
                                     """, textarea, answer)
         time.sleep(DELAY)
-            button = main_driver.find_element(By.CSS_SELECTOR, 'button.qa-form-tall-button.qa-form-tall-button-answer')
+        button = main_driver.find_element(By.CSS_SELECTOR, 'button.qa-form-tall-button.qa-form-tall-button-answer')
         button.click()
         time.sleep(DELAY)
     except Exception as e:
         print("Error: Not able to Paste Answer. TRY: ", TRY)
-        if TRY:
+        if ATTEMP:
             print("Attempting again.")
-            paste_A(main_driver, answer)
-            TRY = TRY - 1
+            paste_A(main_driver, answer, ATTEMP-1)
     
-def copy_QA(main_driver, link):
+def copy_QA(main_driver, link, ATTEMP):
     main_driver.execute_script("window.open('');")
     main_driver.switch_to.window(main_driver.window_handles[1])
-    main_driver.get(link)
+    main_driver.get(process_link(link))
     
-    question = copy_Q(main_driver, link)
+    question = copy_Q(main_driver, link, ATTEMP)
     if question != -1:
-        answer = copy_A(main_driver, link) #copy answer only when question successfuly copied
+        answer = copy_A(main_driver, link, ATTEMP) #copy answer only when question successfuly copied
     else:
         answer = -1
 
     time.sleep(DELAY)
     return [question, answer]
 
-def paste_QA(main_driver, tar_link, question, answer):
+def paste_QA(main_driver, tar_link, question, answer, ATTEMP):
     main_driver.execute_script("window.open('');")
     main_driver.switch_to.window(main_driver.window_handles[2])
     main_driver.get(tar_link)
     
-    paste_Q(main_driver, question)
+    paste_Q(main_driver, question, ATTEMP)
     if answer != -1:
-        paste_A(main_driver, answer)
+        paste_A(main_driver, answer, ATTEMP)
     else:
         print("Mark: Answer is not copied")
     
@@ -157,14 +145,18 @@ def paste_QA(main_driver, tar_link, question, answer):
     
 
 def fun(main_driver):
-    for idx, (link, tar_link) in enumerate(zip(Url.source, Url.target)):
+    for idx, link in enumerate(Url.source): 
+        #(link, tar_link) in enumerate(zip(Url.source, Url.target)):
         # Open a new tab
         print("\nQuestion: ", idx+1)
-        question, answer = copy_QA(main_driver, link)
+        question, answer = copy_QA(main_driver, link, 1)
+        '''
         if question != -1:
             paste_QA(main_driver, tar_link, question, answer)
         else:
             print("Question: %d, Failed !" %(idx))
+        '''
+        print(idx+1,"Question: ", question, "\nAnswer: ", answer)
 
 def login():
     link = "https://gateoverflow.in/login?to="
@@ -187,6 +179,6 @@ def login():
 
 if __name__ == '__main__':
     main_driver = login()
-    time.sleep(seconds)
+    time.sleep(DELAY)
     fun(main_driver)
     main_driver.quit()
