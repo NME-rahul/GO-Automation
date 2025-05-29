@@ -47,11 +47,13 @@ def copy_A(main_driver, link, ATTEMP):
             copy_Q(main_driver, link, ATTEMP-1)
     return answer
     
-def paste_Q(main_driver, question):
+def paste_Q(main_driver, question, tag, ATTEMP):
     try:
+        '''
         wait = WebDriverWait(main_driver, DELAY)
         source_button = wait.until(EC.element_to_be_clickable((By.NAME, "q_doedit")))
         source_button.click()
+        '''
         
         wait = WebDriverWait(main_driver, DELAY)
         source_button = wait.until(EC.element_to_be_clickable((By.ID, "cke_32")))
@@ -71,12 +73,18 @@ def paste_Q(main_driver, question):
                                         }
                                         textarea.value = content;
                                     """, textarea, question)
+        
+        #tags                           
+        tagarea = main_driver.find_element(By.ID, "tags")
+        tagarea.send_keys(tag)  # Use space to simulate tag entry
+        time.sleep(DELAY * 0.3)
+        
         time.sleep(DELAY)
         submit_q = main_driver.find_element(By.XPATH, '//*[@type="submit"]')
         submit_q.click()
         time.sleep(DELAY)
     except Exception as e:
-        print("Error: Not able to Paste Question. TRY: ", TRY)
+        print("Error: Not able to Paste Question. TRY: ", ATTEMP)
         if ATTEMP:
             print("Attempting again.")
             paste_Q(main_driver, question, ATTEMP-1)
@@ -130,32 +138,30 @@ def copy_QA(main_driver, link, ATTEMP):
     time.sleep(DELAY)
     return [question, answer]
 
-def paste_QA(main_driver, tar_link, question, answer, ATTEMP):
+def paste_QA(main_driver, tar_link, question, answer, tag, ATTEMP):
     main_driver.execute_script("window.open('');")
     main_driver.switch_to.window(main_driver.window_handles[2])
-    main_driver.get(tar_link)
+    main_driver.get(process_link(tar_link))
     
-    paste_Q(main_driver, question, ATTEMP)
+    paste_Q(main_driver, question, tag, ATTEMP)
     if answer != -1:
         paste_A(main_driver, answer, ATTEMP)
     else:
-        print("Mark: Answer is not copied")
+        print("Mark: Answer is not Copied")
     
     time.sleep(DELAY)
     
 
 def fun(main_driver):
-    for idx, link in enumerate(Url.source): 
-        #(link, tar_link) in enumerate(zip(Url.source, Url.target)):
-        # Open a new tab
+    for idx, (link, tar_link, tag) in enumerate(zip(Url.source, Url.target, Url.tags)):
         print("\nQuestion: ", idx+1)
         question, answer = copy_QA(main_driver, link, 1)
-        '''
+    
         if question != -1:
-            paste_QA(main_driver, tar_link, question, answer)
+            paste_QA(main_driver, tar_link, question, answer, tag, 1)
         else:
             print("Question: %d, Failed !" %(idx))
-        '''
+        
         print(idx+1,"Question: ", question, "\nAnswer: ", answer)
 
 def login():
