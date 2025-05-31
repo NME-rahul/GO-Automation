@@ -185,6 +185,6 @@ def login():
 
 if __name__ == '__main__':
     main_driver = login()
-    time.sleep(DELAY)
-    fun(main_driver)
+    time.sleep(DELAY) #take delay after login page
+    fun(main_driver) #run for copy and paste
     main_driver.quit()
